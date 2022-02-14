@@ -8,40 +8,45 @@ from fplearn.tsne import TSNEplot
 
 import matplotlib.pyplot as plt
 import numpy as np
-import keras
 
-event_folder = r'C:\Users\Server1\EventCache\Events'  
 
-classes_short = [
-    'Leafhopper', 
-    'Non-Leafhopper'
-]
+event_folder = r'C:\Users\Server1\EventCache\Events'
 
 data_length = 1000
-
 session_groups = [
     [827],  
-    [
-    467, 476, 513, 938, 1073, 865, 
-    1095,
-    750, 850, 879, 717, 724, 753, 828,
-    777, 816, 839, 873, 954, 363, 
-    830, 469, 567, 734, 449, 450, 451, 452
-    ]   
+    [467, 476, 513, 938, 1073, 865], 
+    [1095],
+    [750, 850, 879, 717, 724, 753, 828],
+    [777, 816, 839, 873, 954, 363], 
+    [830, 469, 567, 734, 449, 450, 451, 452]   
+]
+
+classes_short = [
+    'S. titanus_(Hemiptera)',
+    'Hemiptera_(Rest)',
+    'Thysanoptera',
+    'Hymenoptera',
+    'Coleoptera',
+    'Diptera'  
 ]
 
 
 max_samples = [
-    [20000], 
-    [
-    500, 500, 1000, 1000, 1000, 1000,
-    5000,
-    1000, 1000, 1000, 500, 500, 500, 500,
-    500, 500, 1000, 1000, 1000, 1000,
-    1000, 1000, 1000, 1000, 250, 250, 250, 250
-    ]
-]  
- 
+    [16000], 
+    [1500, 1500, 3000, 3000, 3000, 3000],
+    [16000],
+    [3000, 3000, 3000, 2000, 2000, 2000, 2000],
+    [2000, 2000, 3000, 3000, 3000, 3000],
+    [3000, 3000, 3000, 3000, 1000, 1000, 1000, 1000]
+]   
+
+
+
+
+
+
+
 data, \
 labels, \
 files, \
@@ -51,25 +56,28 @@ seg, \
 wave = compile_process_segmented_data(
     session_groups, 
     event_folder,
-    max_samples, 
+    max_samples,
+#    ftfilt_low=[{52:0}, {53:0}], 
+#    ftfilt_high=[{52:400}, {53:0.9}],
     split_channels=True, 
     data_length=data_length, 
     verbose=0, 
-    download=True
+    download=True,
+    thresh_low=0.7,
+    thresh_high=1
 )
-
 
 
 (
  Xt, Xv, Xe, 
  Yt, Yv, Ye,
- ft, fv, fe, 
- rt, rv, re, 
+ ft, fv, fe,
+ rt, rv, re,
  mt, mv, me, 
  st, sv, se, 
  wt, wv, we
  ), \
- cw = mlready_data(
+cw = mlready_data(
     data, 
     labels, 
     files, 
@@ -79,35 +87,41 @@ wave = compile_process_segmented_data(
     wave
 )
 
+
 Xt = Xt.reshape([-1, data_length, 1])
 Xv = Xv.reshape([-1, data_length, 1])
 Xe = Xe.reshape([-1, data_length, 1])
 
-batch_size=100
-epochs=20
+batch_size=300
+epochs=40
 stop_patience=12
-learning_rate=0.0005
+learning_rate=0.001
+label_smoothing=0.3
 
 model, params = run_model(
     Xt, 
     Xv, 
     Yt, 
-    Yv, 
+    Yv,
     class_weights=cw,
-    batch_size=batch_size, 
+    batch_size=batch_size,  
     epochs=epochs, 
     stop_patience=stop_patience, 
-    learning_rate=learning_rate
+    label_smoothing=label_smoothing,
+    learning_rate=learning_rate,
+    arch='STANDARD'
 )
 
-#model.save(r'C:\Users\Server1\ML_models\leafhopper_binary')
-#model = keras.models.load_model(r'C:\Users\Server1\ML_models\leafhopper_binary')
+#model.save(r'C:\Users\Server1\ML_models\leafhopper_multiclass_order-arch_stand')
+
+#import keras
+#model = keras.models.load_model(r'C:\Users\Server1\ML_models\leafhopper_multiclass_order-arch_stand')
 
 
 import json
 import pickle
-base_path = "C:/Users/Server1/ML_models/leafhopper_binary_970/"
-modelname = "leafhopper_binary_970"
+base_path = "C:/Users/Server1/ML_models/leafhopper_multiclass_order_arch_stand_970/"
+modelname = "leafhopper_multiclass_order_arch_stand_970"
 model.save(base_path + modelname + ".h5", save_format='h5')
 
 params_json = json.dumps(str(params))
@@ -147,7 +161,7 @@ params_json = open (base_path + modelname + "_params.json", "r")
 params = json.loads(params_json.read())
 history = pickle.load(
     open(
-        'C:/Users/Server1/ML_models/leafhopper_binary/',
+        'C:/Users/Server1/ML_models/leafhopper_multiclass_order-arch_stand/history',
         "rb"
         )
     )
@@ -208,7 +222,7 @@ tsne = TSNEplot(
     classes=classes_short
 )
 tsne.fit()
-tsne.plot(colormap={0:'violet', 1:'green'})
+tsne.plot()
 
 plt.gcf().set_size_inches(6., 4.)
 tsne_fig = plt.gcf()
@@ -339,3 +353,7 @@ plt.title('median')
 #plt.ylabel("Feature 2")
 plt.xticks([])
 plt.yticks([])
+
+
+
+
