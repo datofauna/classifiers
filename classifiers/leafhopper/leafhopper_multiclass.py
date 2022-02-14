@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-event_folder = r'C:\Users\StylianosNikolaou\EventCache\Events'
+event_folder = r'C:\Users\Server1\EventCache\Events'
 
 data_length = 1000
 session_groups = [
@@ -25,7 +25,7 @@ session_groups = [
     [839], 
     [873], 
     [879], 
- #   [1224]
+    [1224]
 ]
 
 max_samples = [
@@ -40,7 +40,7 @@ max_samples = [
     12000,
     12000,
     12000,
- #   12000
+    12000
 ]   
  
 classes_short = [
@@ -55,9 +55,10 @@ classes_short = [
     'C. pallidactylus WITH PARASITOIDS LEAKED', 
     'C. obstrictus', 
     'Pollen Beetle Parasitoid', 
- #   'Frankliniella occidentalis'
+    'Frankliniella occidentalis'
 ] 
   
+
 
 data, \
 labels, \
@@ -100,8 +101,8 @@ Xt = Xt.reshape([-1, data_length, 1])
 Xv = Xv.reshape([-1, data_length, 1])
 Xe = Xe.reshape([-1, data_length, 1])
 
-batch_size=32
-epochs=25
+batch_size=400
+epochs=30
 stop_patience=12
 learning_rate=0.001
 label_smoothing=0.3
@@ -112,16 +113,17 @@ model, params = run_model(
     Yt, 
     Yv,
     class_weights=cw,
-    batch_size=batch_size, 
+    batch_size=batch_size,  
     epochs=epochs, 
     stop_patience=stop_patience, 
     label_smoothing=label_smoothing,
-    learning_rate=learning_rate
+    learning_rate=learning_rate,
+    arch='STANDARD'
 )
 
-model.save(r'C:\Users\StylianosNikolaou\models\leafhopper_multiclass')
+model.save(r'C:\Users\Server1\ML_models\leafhopper_multiclass')
 
-# model = keras.models.load_model(r'C:\Users\StylianosNikolaou\models\leafhopper_non-leafhopper')
+# model = keras.models.load_model(r'C:\Users\Server1\ML_models\leafhopper_non-leafhopper')
 
 acc_dict, \
 matrix, \
@@ -135,7 +137,7 @@ score = evaluate_model(
 
 
 
-oom = 200
+oom = 1000
 
 tsne = TSNEplot(
     Xt[:oom], 
